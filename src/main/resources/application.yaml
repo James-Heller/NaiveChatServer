@@ -1,7 +1,6 @@
 ktor:
   application:
     modules:
-      - pers.jamestang.components.SerializationKt.initializeSerialization
       - pers.jamestang.components.ComponentInitializerKt.componentInitializer
       - pers.jamestang.ApplicationKt.module
   deployment:
@@ -9,7 +8,7 @@ ktor:
 jwt:
   domain: "https://jwt-provider-domain/"
   audience: "jwt-audience"
-  realm: "ktor sample app"
+  secret: "ktor sample app"
 postgres:
   url: ${POSTGRES_URL}
   user: ${POSTGRES_USER}
