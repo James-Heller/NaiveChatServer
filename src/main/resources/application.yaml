@@ -2,6 +2,7 @@ ktor:
   application:
     modules:
       - pers.jamestang.components.SerializationKt.initializeSerialization
+      - pers.jamestang.components.ComponentInitializerKt.componentInitializer
       - pers.jamestang.ApplicationKt.module
   deployment:
     port: 8080
@@ -10,6 +11,6 @@ jwt:
   audience: "jwt-audience"
   realm: "ktor sample app"
 postgres:
-  url: "jdbc:postgresql://localhost/default"
-  user: username
-  password: password
+  url: ${POSTGRES_URL}
+  user: ${POSTGRES_USER}
+  password: ${POSTGRES_PASSWORD}
