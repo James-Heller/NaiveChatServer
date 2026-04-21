@@ -3,6 +3,7 @@ package pers.jamestang.service
 import at.favre.lib.crypto.bcrypt.BCrypt
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
@@ -50,7 +51,7 @@ object AuthService {
         }
     }
 
-    suspend fun login(ctx: RoutingContext){
+    suspend fun login(ctx: RoutingContext) {
         val payload = ctx.call.receive<LoginReq>()
 
         val dbUser = suspendTransaction {
@@ -60,7 +61,7 @@ object AuthService {
                 .firstOrNull()
         }
 
-        if (dbUser == null){
+        if (dbUser == null) {
             ctx.call.error("用户不存在")
             return
         }
@@ -68,32 +69,35 @@ object AuthService {
         val result = BCrypt.verifyer(BCrypt.Version.VERSION_2B)
             .verify(payload.password.toCharArray(), dbUser[Users.passwordHash].toCharArray())
 
-        if (result.verified){
+        if (result.verified) {
             ctx.call.sessions.set(NaiveChatSession(dbUser[Users.id].value, dbUser[Users.username]))
             ctx.call.ok()
-        }else{
+        } else {
             ctx.call.error(401, "用户名或密码错误")
         }
     }
 
-    suspend fun profile(ctx: RoutingContext){
+    suspend fun profile(ctx: RoutingContext) {
         val principal = ctx.call.sessions.get<NaiveChatSession>()!!
-        val info = suspendTransaction{User.findById(principal.id)}
+        val info = suspendTransaction { User.findById(principal.id) }
 
         if (info == null) {
             ctx.call.error("这不应该发生，请联系管理员")
             return
         }
 
+        ctx.call.data(
+            AuthMeResp(
+                info.username,
+                info.displayName,
+                info.email,
+                info.gender,
+            )
+        )
+    }
 
-
-
-        ctx.call.data(AuthMeResp(
-            info.username,
-            info.displayName,
-            info.email,
-            info.gender,
-        ))
-
+    suspend fun logout(ctx: RoutingContext) {
+        ctx.call.sessions.clear<NaiveChatSession>()
+        ctx.call.ok()
     }
 }

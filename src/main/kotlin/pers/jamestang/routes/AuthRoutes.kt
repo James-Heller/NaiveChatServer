@@ -11,6 +11,7 @@ fun Route.authRoutes() {
 
         authenticate {
             get("profile", AuthService::profile)
+            get("logout", AuthService::logout)
         }
     }
 }
