@@ -1,18 +1,21 @@
 package pers.jamestang.components
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.http.ContentType
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.session
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.sessions.*
+import io.ktor.util.hex
+import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import pers.jamestang.expand.jackson3
 import pers.jamestang.tables.Users
+import pers.jamestang.util.NaiveChatSession
 
 fun Application.componentInitializer() {
     initializeDatabase()
@@ -45,34 +48,32 @@ private fun Application.initializeDatabase() {
 }
 
 private fun Application.initializeAuthorization() {
-
-    val cfg = environment.config.config("jwt")
-
-    val jwtAudience = cfg.property("audience").getString()
-    val jwtDomain = cfg.property("domain").getString()
-    val jwtRealm = "NaiveChat"
-    val jwtSecret = cfg.property("secret").getString()
-    authentication {
-        jwt {
-            realm = jwtRealm
-            verifier(
-                JWT
-                    .require(Algorithm.HMAC256(jwtSecret))
-                    .withAudience(jwtAudience)
-                    .withIssuer(jwtDomain)
-                    .build()
-            )
-            validate { credential ->
-                if (credential.payload.audience.contains(jwtAudience)) JWTPrincipal(credential.payload) else null
+    val secret = environment.config.config("session")
+    val signKey = secret.property("secret").getString()
+    val encryptionKey = secret.property("encryptionKey").getString()
+    install(Authentication) {
+        session<NaiveChatSession>(){
+            validate {
+                
             }
         }
     }
+    install(Sessions) {
+        val signKey = hex(signKey)
+        val hashKey = hex(encryptionKey)
+    header<NaiveChatSession>("NC_SESSION") {
+        transform(SessionTransportTransformerEncrypt(hashKey, signKey))
+    }
+}
 }
 
 fun Application.initializeSerialization() {
     install(ContentNegotiation) {
-        clearIgnoredTypes()
-        jackson3()
+        json(json = Json {
+            explicitNulls = false
+            ignoreUnknownKeys = true
+
+        }, contentType = ContentType.Application.Json)
     }
 
 }

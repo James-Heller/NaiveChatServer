@@ -8,5 +8,5 @@ object Users: BaseTable("users") {
     val passwordHash = varchar("password_hash", 64)
     val displayName = varchar("display_name", 64).nullable()
     val email = varchar("email", 64).nullable()
-    val gender = varchar("gender", 1).nullable()
+    val gender = varchar("gender", 8).nullable()
 }

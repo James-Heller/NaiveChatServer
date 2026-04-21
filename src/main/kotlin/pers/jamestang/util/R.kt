@@ -1,9 +1,12 @@
 package pers.jamestang.util
 
-data class  R<T>(
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class R<T>(
     val code: Int,
     val data: T? = null,
-    val msg: kotlin.String
+    val msg: String
 ){
 
     companion object {
