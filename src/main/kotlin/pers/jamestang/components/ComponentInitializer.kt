@@ -14,6 +14,8 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import pers.jamestang.expand.DatabaseSessionStorage
+import pers.jamestang.tables.OnlineUser
 import pers.jamestang.tables.Users
 import pers.jamestang.util.NaiveChatSession
 
@@ -38,7 +40,7 @@ private fun Application.initializeDatabase() {
     Database.connect(dataSource)
 
     transaction {
-        SchemaUtils.create(Users)
+        SchemaUtils.create(Users, OnlineUser)
     }
 
 
@@ -61,7 +63,7 @@ private fun Application.initializeAuthorization() {
     install(Sessions) {
         val signKey = hex(signKey)
         val hashKey = hex(encryptionKey)
-    header<NaiveChatSession>("NC_SESSION") {
+    header<NaiveChatSession>("NC_SESSION", DatabaseSessionStorage()) {
         transform(SessionTransportTransformerEncrypt(hashKey, signKey))
     }
 }
