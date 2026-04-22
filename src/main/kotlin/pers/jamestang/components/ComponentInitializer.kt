@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.session
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.response.respond
 import io.ktor.server.sessions.*
 import io.ktor.util.hex
 import kotlinx.serialization.json.Json
@@ -18,6 +19,7 @@ import pers.jamestang.expand.DatabaseSessionStorage
 import pers.jamestang.tables.OnlineUser
 import pers.jamestang.tables.Users
 import pers.jamestang.util.NaiveChatSession
+import pers.jamestang.util.R
 
 fun Application.componentInitializer() {
     initializeDatabase()
@@ -57,6 +59,10 @@ private fun Application.initializeAuthorization() {
         session<NaiveChatSession>(){
             validate {
                 
+            }
+
+            challenge {
+                call.respond(R.error(401, "未登录"))
             }
         }
     }

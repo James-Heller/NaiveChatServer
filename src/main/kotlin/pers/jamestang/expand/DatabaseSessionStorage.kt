@@ -14,7 +14,7 @@ import pers.jamestang.util.NaiveChatSession
 class DatabaseSessionStorage: SessionStorage {
     override suspend fun invalidate(id: String) {
         suspendTransaction {
-            OnlineUser.deleteWhere(1){ OnlineUser.session_id eq id }
+            OnlineUser.deleteWhere{ OnlineUser.session_id eq id }
         }
     }
 
