@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class NaiveChatSession(
     val id: Int,
     val username: String,
+    val deviceId: String=""
 
 )
